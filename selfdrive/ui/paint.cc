@@ -91,6 +91,7 @@ static void ui_draw_circle_image(const UIState *s, int center_x, int center_y, i
     ui_draw_circle_image(s, center_x, center_y, radius, image, nvgRGBA(0, 0, 0, (255 * bg_alpha)), img_alpha);
   }
 }
+*/
 
 static void draw_lead(UIState *s, const cereal::ModelDataV2::LeadDataV2::Reader &lead_data, const vertex_data &vd) {
   // Draw lead car indicator
