@@ -308,6 +308,7 @@ std::unordered_map<std::string, uint32_t> keys = {
     {"RecordingQuality", PERSISTENT},
     {"CruiseGapAdjust", PERSISTENT},
     {"AutoEnable", PERSISTENT},
+    {"AutoEnableSpeed", PERSISTENT},
     {"CruiseAutoRes", PERSISTENT},
     {"AutoResOption", PERSISTENT},
     {"AutoResCondition", PERSISTENT},
@@ -339,6 +340,8 @@ std::unordered_map<std::string, uint32_t> keys = {
     {"LCTimingFactor110", PERSISTENT},
     {"OpkrUIBrightnessOff", PERSISTENT},
     {"LCTimingFactorEnable", PERSISTENT},
+    {"SafetyCamDecelDistGain", PERSISTENT},
+    {"OpkrLiveCameraOffsetEnable", PERSISTENT},
 };
 
 } // namespace

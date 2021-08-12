@@ -5,6 +5,7 @@
 
 #include "selfdrive/hardware/hw.h"
 #include "selfdrive/ui/qt/widgets/controls.h"
+#include "selfdrive/ui/ui.h" // opkr
 
 // SSH enable toggle
 class SshToggle : public ToggleControl {
@@ -34,6 +35,24 @@ private:
   void getUserKeys(const QString &username);
 };
 
+class SwitchOpenpilot : public ButtonControl {
+  Q_OBJECT
+
+public:
+  SwitchOpenpilot();
+
+private:
+  Params params;
+
+  QString githubid;
+  QString githubrepo;
+  QString githubbranch;
+
+  void refresh();
+  void getUserID(const QString &userid);
+  void getRepoID(const QString &repoid);
+  void getBranchID(const QString &branchid);
+};
 
 class SshLegacyToggle : public ToggleControl {
   Q_OBJECT
@@ -439,6 +458,23 @@ public:
     QObject::connect(this, &BattLessToggle::toggleFlipped, [=](int state) {
       char value = state ? '1' : '0';
       Params().put("OpkrBattLess", &value, 1);
+    });
+  }
+};
+
+class LiveCameraOffsetToggle : public ToggleControl {
+  Q_OBJECT
+
+public:
+  LiveCameraOffsetToggle() : ToggleControl("Live CameraOffset", "카메라오프셋을 실시간으로 조정합니다. 화면에 관련 UI가 표시되며, 실시간 튜닝 혹은 주행중 실시간 적용시 사용하세요.", "../assets/offroad/icon_shell.png", Params().getBool("OpkrLiveCameraOffsetEnable")) {
+    QObject::connect(this, &LiveCameraOffsetToggle::toggleFlipped, [=](int state) {
+      char value = state ? '1' : '0';
+      Params().put("OpkrLiveCameraOffsetEnable", &value, 1);
+      if (state) {
+        QUIState::ui_state.scene.live_camera_offset_enable = true;
+      } else {
+        QUIState::ui_state.scene.live_camera_offset_enable = false;
+      }
     });
   }
 };
@@ -1480,6 +1516,36 @@ class AutoResCondition : public AbstractControl {
 
 public:
   AutoResCondition();
+
+private:
+  QPushButton btnplus;
+  QPushButton btnminus;
+  QLabel label;
+  Params params;
+  
+  void refresh();
+};
+
+class AutoEnableSpeed : public AbstractControl {
+  Q_OBJECT
+
+public:
+  AutoEnableSpeed();
+
+private:
+  QPushButton btnplus;
+  QPushButton btnminus;
+  QLabel label;
+  Params params;
+  
+  void refresh();
+};
+
+class CamDecelDistAdd : public AbstractControl {
+  Q_OBJECT
+
+public:
+  CamDecelDistAdd();
 
 private:
   QPushButton btnplus;

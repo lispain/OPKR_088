@@ -91,16 +91,16 @@ static void ui_draw_circle_image(const UIState *s, int center_x, int center_y, i
     ui_draw_circle_image(s, center_x, center_y, radius, image, nvgRGBA(0, 0, 0, (255 * bg_alpha)), img_alpha);
   }
 }
-*/
-static void draw_lead(UIState *s, const cereal::RadarState::LeadData::Reader &lead_data, const vertex_data &vd) {
+
+static void draw_lead(UIState *s, const cereal::ModelDataV2::LeadDataV2::Reader &lead_data, const vertex_data &vd) {
   // Draw lead car indicator
   auto [x, y] = vd;
 
   float fillAlpha = 0;
   float speedBuff = 10.;
   float leadBuff = 40.;
-  float d_rel = lead_data.getDRel();
-  float v_rel = lead_data.getVRel();
+  float d_rel = lead_data.getXyva()[0];
+  float v_rel = lead_data.getXyva()[2];
   if (d_rel < leadBuff) {
     fillAlpha = 255*(1.0-(d_rel/leadBuff));
     if (v_rel < 0) {
@@ -253,13 +253,12 @@ static void ui_draw_world(UIState *s) {
   // Draw lead indicators if openpilot is handling longitudinal
   //if (s->scene.longitudinal_control) {
   if (true) {
-    auto radar_state = (*s->sm)["radarState"].getRadarState();
-    auto lead_one = radar_state.getLeadOne();
-    auto lead_two = radar_state.getLeadTwo();
-    if (lead_one.getStatus()) {
+    auto lead_one = (*s->sm)["modelV2"].getModelV2().getLeads()[0];
+    auto lead_two = (*s->sm)["modelV2"].getModelV2().getLeads()[1];
+    if (lead_one.getProb() > .5) {
       draw_lead(s, lead_one, s->scene.lead_vertices[0]);
     }
-    if (lead_two.getStatus() && (std::abs(lead_one.getDRel() - lead_two.getDRel()) > 3.0)) {
+    if (lead_two.getProb() > .5 && (std::abs(lead_one.getXyva()[0] - lead_two.getXyva()[0]) > 3.0)) {
       draw_lead(s, lead_two, s->scene.lead_vertices[1]);
     }
   }
@@ -1070,27 +1069,28 @@ static void bb_ui_draw_measures_right(UIState *s, int bb_x, int bb_y, int bb_w )
   int value_fontSize=32;
   int label_fontSize=17;
   int uom_fontSize = 17;
-  int bb_uom_dx =  (int)(bb_w /2 - uom_fontSize*2.5) ;
+  int bb_uom_dx =  (int)(bb_w /2 - uom_fontSize*2.5);
+  auto lead_one = (*s->sm)["modelV2"].getModelV2().getLeads()[0];
 
   //add visual radar relative distance
   if (true) {
     char val_str[16];
     char uom_str[6];
     NVGcolor val_color = COLOR_WHITE_ALPHA(200);
-    if (scene->lead_data[0].getStatus()) {
+    if (lead_one.getProb() > .5) {
       //show RED if less than 5 meters
       //show orange if less than 15 meters
-      if((int)(scene->lead_data[0].getDRel()) < 15) {
+      if((int)(lead_one.getXyva()[0]) < 15) {
         val_color = COLOR_ORANGE_ALPHA(200);
       }
-      if((int)(scene->lead_data[0].getDRel()) < 5) {
+      if((int)(lead_one.getXyva()[0]) < 5) {
         val_color = COLOR_RED_ALPHA(200);
       }
       // lead car relative distance is always in meters
-      if((float)(scene->lead_data[0].getDRel()) < 10) {
-        snprintf(val_str, sizeof(val_str), "%.1f", (float)scene->lead_data[0].getDRel());
+      if((float)(lead_one.getXyva()[0]) < 10) {
+        snprintf(val_str, sizeof(val_str), "%.1f", (float)lead_one.getXyva()[0]);
       } else {
-        snprintf(val_str, sizeof(val_str), "%d", (int)scene->lead_data[0].getDRel());
+        snprintf(val_str, sizeof(val_str), "%d", (int)lead_one.getXyva()[0]);
       }
 
     } else {
@@ -1108,20 +1108,20 @@ static void bb_ui_draw_measures_right(UIState *s, int bb_x, int bb_y, int bb_w )
     char val_str[16];
     char uom_str[6];
     NVGcolor val_color = COLOR_WHITE_ALPHA(200);
-    if (scene->lead_data[0].getStatus()) {
+    if (lead_one.getProb() > .5) {
       //show Orange if negative speed (approaching)
       //show Orange if negative speed faster than 5mph (approaching fast)
-      if((int)(scene->lead_data[0].getVRel()) < 0) {
+      if((int)(lead_one.getXyva()[2]) < 0) {
         val_color = nvgRGBA(255, 188, 3, 200);
       }
-      if((int)(scene->lead_data[0].getVRel()) < -5) {
+      if((int)(lead_one.getXyva()[2]) < -5) {
         val_color = nvgRGBA(255, 0, 0, 200);
       }
       // lead car relative speed is always in meters
       if (s->scene.is_metric) {
-         snprintf(val_str, sizeof(val_str), "%d", (int)(scene->lead_data[0].getVRel() * 3.6 + 0.5));
+         snprintf(val_str, sizeof(val_str), "%d", (int)(lead_one.getXyva()[2] * 3.6 + 0.5));
       } else {
-         snprintf(val_str, sizeof(val_str), "%d", (int)(scene->lead_data[0].getVRel() * 2.2374144 + 0.5));
+         snprintf(val_str, sizeof(val_str), "%d", (int)(lead_one.getXyva()[2] * 2.2374144 + 0.5));
       }
     } else {
        snprintf(val_str, sizeof(val_str), "-");
@@ -1420,6 +1420,39 @@ static void ui_draw_vision_car(UIState *s) {
   }
 }
 
+// live camera offset adjust by OPKR
+static void ui_draw_live_camera_offet_adjust(UIState *s) {
+  const int width = 160;
+  const int height = 160;
+  const int x_start_pos_l = s->fb_w/2 - width*2;
+  const int x_start_pos_r = s->fb_w/2 + width*2;
+  const int y_pos = 700;
+  //left symbol
+  nvgBeginPath(s->vg);
+  nvgMoveTo(s->vg, x_start_pos_l, y_pos);
+  nvgLineTo(s->vg, x_start_pos_l - width + 30, y_pos + height/2);
+  nvgLineTo(s->vg, x_start_pos_l, y_pos + height);
+  nvgClosePath(s->vg);
+  nvgFillColor(s->vg, nvgRGBA(171,242,0,150));
+  nvgFill(s->vg);
+  //right symbol
+  nvgBeginPath(s->vg);
+  nvgMoveTo(s->vg, x_start_pos_r, y_pos);
+  nvgLineTo(s->vg, x_start_pos_r + width - 30, y_pos + height/2);
+  nvgLineTo(s->vg, x_start_pos_r, y_pos + height);
+  nvgClosePath(s->vg);
+  nvgFillColor(s->vg, nvgRGBA(171,242,0,150));
+  nvgFill(s->vg);
+  //param value
+  nvgTextAlign(s->vg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
+  nvgFontSize(s->vg, 150);
+  nvgFillColor(s->vg, COLOR_WHITE_ALPHA(200));
+  ui_print(s, s->fb_w/2, y_pos + height/2, "%+0.3f", s->scene.live_camera_offset*0.001);
+  nvgFontSize(s->vg, 75);
+  nvgFillColor(s->vg, COLOR_WHITE_ALPHA(200));
+  ui_print(s, s->fb_w/2, y_pos - 50, "CameraOffset");
+}
+
 static void ui_draw_vision(UIState *s) {
   const UIScene *scene = &s->scene;
   // Draw augmented elements
@@ -1433,6 +1466,9 @@ static void ui_draw_vision(UIState *s) {
     if (!s->scene.comma_stock_ui) {
       ui_draw_vision_car(s);
     }
+  }
+  if (s->scene.live_camera_offset_enable) {
+      ui_draw_live_camera_offet_adjust(s);
   }
 }
 
