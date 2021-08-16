@@ -546,7 +546,7 @@ static void ui_draw_vision_cameradist(UIState *s) {
       ui_draw_text(s, rect.centerX() - 15, bdr_s+980, cameradist_str.c_str(), 34 * 2.0, COLOR_WHITE_ALPHA(0), "sans-semibold");
       ui_draw_text(s, rect.centerX() + 65, bdr_s+980, "m", 25 * 1.6, COLOR_WHITE_ALPHA(0), "sans-semibold");
     }
-    else if (s->scene.nCameraWarning) {
+  } else if (s->scene.nCameraWarning) {
     if (s->scene.mapSign == 165 && s->scene.limitSpeedCameraDist > 10000 && s->scene.liveMapData.opkrspeedlimitdist != 0) {
       color = COLOR_WHITE_ALPHA(0);
       ui_draw_rect(s->vg, rect, color, 10, 0.);
