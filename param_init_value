@@ -1,6 +1,6 @@
 TpmsDisplay:0
 OpkrAutoShutdown:2
-OpkrAutoScreenOff:0
+OpkrAutoScreenOff:-2
 OpkrUIBrightness:0
 OpkrUIVolumeBoost:0
 OpkrEnableDriverMonitoring:1
@@ -28,6 +28,7 @@ PidKi:40
 PidKd:150
 PidKf:7
 CameraOffsetAdj:60
+PathOffsetAdj:0
 SteerRatioAdj:1550
 SteerRatioMaxAdj:1750
 SteerActuatorDelayAdj:20
@@ -94,3 +95,4 @@ LCTimingFactorEnable:1
 AutoEnableSpeed:3
 SafetyCamDecelDistGain:0
 OpkrLiveTunePanelEnable:0
+RadarLongHelper:1

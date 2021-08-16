@@ -250,6 +250,30 @@ static void update_state(UIState *s) {
     scene.steerMax_V = sm["carParams"].getCarParams().getSteerMaxV()[0];
     scene.steer_actuator_delay = sm["carParams"].getCarParams().getSteerActuatorDelay();
   }
+  if (sm.updated("lateralPlan")) {
+    scene.lateral_plan = sm["lateralPlan"].getLateralPlan();
+    auto data = sm["lateralPlan"].getLateralPlan();
+
+    scene.lateralPlan.laneWidth = data.getLaneWidth();
+    scene.lateralPlan.dProb = data.getDProb();
+    scene.lateralPlan.lProb = data.getLProb();
+    scene.lateralPlan.rProb = data.getRProb();
+    scene.lateralPlan.steerRateCost = data.getSteerRateCost();
+    scene.lateralPlan.standstillElapsedTime = data.getStandstillElapsedTime();
+    scene.lateralPlan.lanelessModeStatus = data.getLanelessMode();
+  }
+  // opkr
+  if (sm.updated("liveMapData")) {
+    scene.live_map_data = sm["liveMapData"].getLiveMapData();
+    auto data = sm["liveMapData"].getLiveMapData();
+
+    scene.liveMapData.opkrspeedlimit = data.getSpeedLimit();
+    scene.liveMapData.opkrspeedlimitdist = data.getSpeedLimitDistance();
+    scene.liveMapData.opkrspeedsign = data.getSafetySign();
+    scene.liveMapData.opkrcurveangle = data.getRoadCurvature();
+    scene.liveMapData.opkrturninfo = data.getTurnInfo();
+    scene.liveMapData.opkrdisttoturn = data.getDistanceToTurn();
+  }
   if (sm.updated("sensorEvents")) {
     for (auto sensor : sm["sensorEvents"].getSensorEvents()) {
       if (!scene.started && sensor.which() == cereal::SensorEventData::ACCELERATION) {
@@ -289,30 +313,6 @@ static void update_state(UIState *s) {
   }
   scene.started = sm["deviceState"].getDeviceState().getStarted();
   //scene.started = sm["deviceState"].getDeviceState().getStarted() && scene.ignition;
-  if (sm.updated("lateralPlan")) {
-    scene.lateral_plan = sm["lateralPlan"].getLateralPlan();
-    auto data = sm["lateralPlan"].getLateralPlan();
-
-    scene.lateralPlan.laneWidth = data.getLaneWidth();
-    scene.lateralPlan.dProb = data.getDProb();
-    scene.lateralPlan.lProb = data.getLProb();
-    scene.lateralPlan.rProb = data.getRProb();
-    scene.lateralPlan.steerRateCost = data.getSteerRateCost();
-    scene.lateralPlan.standstillElapsedTime = data.getStandstillElapsedTime();
-    scene.lateralPlan.lanelessModeStatus = data.getLanelessMode();
-  }
-  // opkr
-  if (sm.updated("liveMapData")) {
-    scene.live_map_data = sm["liveMapData"].getLiveMapData();
-    auto data = sm["liveMapData"].getLiveMapData();
-
-    scene.liveMapData.opkrspeedlimit = data.getSpeedLimit();
-    scene.liveMapData.opkrspeedlimitdist = data.getSpeedLimitDistance();
-    scene.liveMapData.opkrspeedsign = data.getSafetySign();
-    scene.liveMapData.opkrcurveangle = data.getRoadCurvature();
-    scene.liveMapData.opkrturninfo = data.getTurnInfo();
-    scene.liveMapData.opkrdisttoturn = data.getDistanceToTurn();
-  }
 }
 
 static void update_params(UIState *s) {
@@ -419,6 +419,8 @@ static void update_status(UIState *s) {
       s->scene.scr.autoScreenOff = std::stoi(params.get("OpkrAutoScreenOff"));
       s->scene.brightness_off = std::stoi(params.get("OpkrUIBrightnessOff"));
       s->scene.cameraOffset = std::stoi(params.get("CameraOffsetAdj"));
+      s->scene.pathOffset = std::stoi(params.get("PathOffsetAdj"));
+      s->scene.osteerRateCost = std::stoi(params.get("SteerRateCostAdj"));
       s->scene.pidKp = std::stoi(params.get("PidKp"));
       s->scene.pidKi = std::stoi(params.get("PidKi"));
       s->scene.pidKd = std::stoi(params.get("PidKd"));
@@ -444,6 +446,7 @@ static void update_status(UIState *s) {
         s->scene.scr.nTime = -1;
       }
       s->scene.comma_stock_ui = params.getBool("CommaStockUI");
+      s->scene.opkr_livetune_ui = params.getBool("OpkrLiveTunePanelEnable");
       s->scene.apks_enabled = params.getBool("OpkrApksEnable");
       s->scene.batt_less = params.getBool("OpkrBattLess");
     } else {
@@ -484,10 +487,10 @@ void QUIState::update() {
   update_sockets(&ui_state);
   update_state(&ui_state);
   update_status(&ui_state);
-  dashcam(&ui_state);
   update_vision(&ui_state);
+  dashcam(&ui_state);
 
-  if (ui_state.scene.started != started_prev) {
+  if (ui_state.scene.started != started_prev || ui_state.sm->frame == 1) {
     started_prev = ui_state.scene.started;
     emit offroadTransition(!ui_state.scene.started);
 
@@ -525,9 +528,19 @@ void Device::setAwake(bool on, bool reset) {
 }
 
 void Device::updateBrightness(const UIState &s) {
-  float brightness_b = 10;
-  float brightness_m = 0.1;
-  float clipped_brightness = std::min(100.0f, (s.scene.light_sensor * brightness_m) + brightness_b);
+  // Scale to 0% to 100%
+  float clipped_brightness = 100.0 * s.scene.light_sensor;
+
+  // CIE 1931 - https://www.photonstophotos.net/GeneralTopics/Exposure/Psychometric_Lightness_and_Gamma.htm
+  if (clipped_brightness <= 8) {
+    clipped_brightness = (clipped_brightness / 903.3);
+  } else {
+    clipped_brightness = std::pow((clipped_brightness + 16.0) / 116.0, 3.0);
+  }
+
+  // Scale back to 10% to 100%
+  clipped_brightness = std::clamp(100.0f * clipped_brightness, 10.0f, 100.0f);
+
   if (!s.scene.started) {
     clipped_brightness = BACKLIGHT_OFFROAD;
   } else if (s.scene.scr.autoScreenOff != -2 && s.scene.touched2) {

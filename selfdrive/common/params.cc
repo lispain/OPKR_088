@@ -257,6 +257,7 @@ std::unordered_map<std::string, uint32_t> keys = {
     {"PidKd", PERSISTENT},
     {"PidKf", PERSISTENT},
     {"CameraOffsetAdj", PERSISTENT},
+    {"PathOffsetAdj", PERSISTENT},
     {"SteerRatioAdj", PERSISTENT},
     {"SteerRatioMaxAdj", PERSISTENT},
     {"SteerActuatorDelayAdj", PERSISTENT},
@@ -343,6 +344,8 @@ std::unordered_map<std::string, uint32_t> keys = {
     {"OpkrLiveTunePanelEnable", PERSISTENT},
     {"KRDateShow", PERSISTENT},
     {"KRTimeShow", PERSISTENT},
+    {"RadarLongHelper", PERSISTENT},
+    {"FCAType", PERSISTENT},
 };
 
 } // namespace

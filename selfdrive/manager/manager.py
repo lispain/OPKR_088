@@ -43,7 +43,7 @@ def manager_init():
     ("IsOpenpilotViewEnabled", "0"),
     ("OpkrAutoShutdown", "2"),
     ("OpkrForceShutdown", "5"),
-    ("OpkrAutoScreenOff", "0"),
+    ("OpkrAutoScreenOff", "-2"),
     ("OpkrUIBrightness", "0"),
     ("OpkrUIBrightness", "0"),
     ("OpkrUIVolumeBoost", "0"),
@@ -73,6 +73,7 @@ def manager_init():
     ("PidKd", "150"),
     ("PidKf", "7"),
     ("CameraOffsetAdj", "60"),
+    ("PathOffsetAdj", "0"),
     ("SteerRatioAdj", "1550"),
     ("SteerRatioMaxAdj", "1750"),
     ("SteerActuatorDelayAdj", "20"),
@@ -154,6 +155,8 @@ def manager_init():
     ("AutoEnableSpeed", "3"),
     ("SafetyCamDecelDistGain", "0"),
     ("OpkrLiveTunePanelEnable", "0"),
+    ("RadarLongHelper", "1"),
+    ("FCAType", "0"),
   ]
   if not PC:
     default_params.append(("LastUpdateTime", datetime.datetime.utcnow().isoformat().encode('utf8')))

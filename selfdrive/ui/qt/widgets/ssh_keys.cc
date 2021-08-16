@@ -30,6 +30,7 @@ SshControl::SshControl() : ButtonControl("SSH 키 설정", "", "경고: 이렇�
     } else {
       params.remove("GithubUsername");
       params.remove("GithubSshKeys");
+      params.put("OpkrSSHLegacy", "0", 1);
       refresh();
     }
   });
@@ -39,12 +40,13 @@ SshControl::SshControl() : ButtonControl("SSH 키 설정", "", "경고: 이렇�
 
 void SshControl::refresh() {
   QString param = QString::fromStdString(params.get("GithubSshKeys"));
+  QString isUsername = QString::fromStdString(params.get("GithubUsername"));
   bool legacy_stat = params.getBool("OpkrSSHLegacy");
   if (param.length()) {
-    if (legacy_stat) {
-      username_label.setText("공개KEY 사용중");
-    } else {
+    if (isUsername.length()) {
       username_label.setText(QString::fromStdString(params.get("GithubUsername")));
+    } else if (legacy_stat) {
+      username_label.setText("공개KEY 사용중");
     }
     setText("제거");
   } else {
@@ -227,6 +229,7 @@ OpenpilotView::OpenpilotView() : AbstractControl("오픈파일럿 주행화면 �
     color: #E4E4E4;
     background-color: #393939;
   )");
+
   btn.setFixedSize(250, 100);
   hlayout->addWidget(&btn);
 
@@ -350,16 +353,64 @@ void CarRecognition::refresh(QString carname) {
   }
 }
 
-CarForceSet::CarForceSet() : AbstractControl("차량강제인식", "핑거프린트 문제로 차량인식이 안될경우 차량명을 입력하시면 강제 인식 합니다.\n\n입력방법) 아래 참조하여 대문자로 차량명만 입력\nGENESIS, GENESIS_G70, GENESIS_G80, GENESIS_G90, AVANTE, I30, SONATA, SONATA_HEV, SONATA19, SONATA19_HEV, KONA, KONA_EV, KONA_HEV, IONIQ_EV, IONIQ_HEV, SANTA_FE, PALISADE, VELOSTER, GRANDEUR_IG, GRANDEUR_IG_HEV, GRANDEUR_IG_FL, GRANDEUR_IG_FL_HEV, NEXO, K3, K5, K5_HEV, SPORTAGE, SORENTO, STINGER, NIRO_EV, NIRO_HEV, K7, K7_HEV, SELTOS, SOUL_EV, MOHAVE", "../assets/offroad/icon_shell.png") {
+// atom, opkr mod
+CarSelectCombo::CarSelectCombo() : AbstractControl("차량강제인식", "핑거프린트 대신 자동차 모델을 강제로 인식시키는 메뉴입니다.", "") 
+{
+  combobox.setStyleSheet(R"(
+    subcontrol-origin: padding;
+    subcontrol-position: top right;
+    selection-background-color: #111;
+    selection-color: yellow;
+    color: white;
+    background-color: #393939;
+    border-style: solid;
+    border: 0px solid #1e1e1e;
+    border-radius: 0;
+    width: 100px;
+  )");
 
-  // setup widget
-  //hlayout->addStretch(1);
-  
-  //carname_label.setAlignment(Qt::AlignVCenter);
-  //carname_label.setStyleSheet("color: #aaaaaa");
-  //hlayout->addWidget(&carname_label);
+  combobox.addItem("차량을 선택하세요");
+  combobox.addItem("GENESIS");
+  combobox.addItem("GENESIS_G70");
+  combobox.addItem("GENESIS_G80");
+  combobox.addItem("GENESIS_G90");
+  combobox.addItem("AVANTE");
+  combobox.addItem("I30");
+  combobox.addItem("SONATA");
+  combobox.addItem("SONATA_HEV");
+  combobox.addItem("SONATA_LF");
+  combobox.addItem("SONATA_LF_TURBO");
+  combobox.addItem("SONATA_LF_HEV");
+  combobox.addItem("KONA");
+  combobox.addItem("KONA_EV");
+  combobox.addItem("KONA_HEV");
+  combobox.addItem("IONIQ_EV");
+  combobox.addItem("IONIQ_HEV");
+  combobox.addItem("SANTA_FE");
+  combobox.addItem("PALISADE");
+  combobox.addItem("VELOSTER");
+  combobox.addItem("GRANDEUR_IG");
+  combobox.addItem("GRANDEUR_IG_HEV");
+  combobox.addItem("GRANDEUR_IG_FL");
+  combobox.addItem("GRANDEUR_IG_FL_HEV");
+  combobox.addItem("NEXO");
+  combobox.addItem("K3");
+  combobox.addItem("K5");
+  combobox.addItem("K5_HEV");
+  combobox.addItem("K7");
+  combobox.addItem("K7_HEV");
+  combobox.addItem("SPORTAGE");
+  combobox.addItem("SORENTO");
+  combobox.addItem("STINGER");
+  combobox.addItem("NIRO_EV");
+  combobox.addItem("NIRO_HEV");
+  combobox.addItem("SELTOS");
+  combobox.addItem("SOUL_EV");
+  combobox.addItem("MOHAVE");
 
-  btnc.setStyleSheet(R"(
+  combobox.setFixedWidth(700);
+
+  btn.setStyleSheet(R"(
     padding: 0;
     border-radius: 50px;
     font-size: 35px;
@@ -367,39 +418,53 @@ CarForceSet::CarForceSet() : AbstractControl("차량강제인식", "핑거프린
     color: #E4E4E4;
     background-color: #393939;
   )");
-  btnc.setFixedSize(250, 100);
-  hlayout->addWidget(&btnc);
 
-  QObject::connect(&btnc, &QPushButton::clicked, [=]() {
-    if (btnc.text() == "설정") {
-      carname = InputDialog::getText("차량명은 이전메뉴 차량강제인식을 클릭하여 확인", this);
-      if (carname.length() > 0) {
-        btnc.setText("완료");
-        btnc.setEnabled(false);
-        params.put("CarModel", carname.toStdString());
-        QProcess::execute("/data/openpilot/car_force_set.sh");
+  btn.setFixedSize(150, 100);
+
+  QObject::connect(&btn, &QPushButton::clicked, [=]() {
+    if (btn.text() == "설정제거") {
+      if (ConfirmationDialog::confirm("차량 강제 설정을 해제하시겠습니까?", this)) {
+        params.remove("CarModel");
+        params.remove("CarModelAbb");
+        combobox.setCurrentIndex(0);
+        refresh();
       }
-    } else {
-      params.remove("CarModel");
-      refreshc();
     }
   });
 
-  refreshc();
+  //combobox.view()->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+
+  hlayout->addWidget(&combobox);
+  hlayout->addWidget(&btn);
+
+  QObject::connect(&combobox, static_cast<void(QComboBox::*)(int)>(&QComboBox::activated), [=](int index)
+  {
+    combobox.itemData(combobox.currentIndex());
+    QString str = combobox.currentText();
+    if (combobox.currentIndex() != 0) {
+      if (ConfirmationDialog::confirm(str + "(으)로 강제 설정하시겠습니까?", this)) {
+        params.put("CarModel", str.toStdString());
+        params.put("CarModelAbb", str.toStdString());
+        QProcess::execute("/data/openpilot/car_force_set.sh");
+      }
+    }
+    refresh();
+  });
+  refresh();
 }
 
-void CarForceSet::refreshc() {
-  QString paramc = QString::fromStdString(params.get("CarModel"));
-  if (paramc.length()) {
-    //carname_label.setText(QString::fromStdString(params.get("CarModel")));
-    btnc.setText("제거");
+void CarSelectCombo::refresh() {
+  QString selected_carname = QString::fromStdString(params.get("CarModelAbb"));
+  int index = combobox.findText(selected_carname);
+  if (index >= 0) combobox.setCurrentIndex(index);
+  if (selected_carname.length()) {
+    btn.setEnabled(true);
+    btn.setText("설정제거");
   } else {
-    //carname_label.setText("");
-    btnc.setText("설정");
+    btn.setEnabled(false);
+    btn.setText("<-선택");
   }
-  btnc.setEnabled(true);
 }
-
 
 //UI
 AutoShutdown::AutoShutdown() : AbstractControl("EON 자동 종료", "운행(온로드) 후 시동을 끈 상태(오프로드)에서 설정시간 이후에 자동으로 이온이 꺼집니다.", "../assets/offroad/icon_shell.png") {
@@ -2474,7 +2539,7 @@ void MaxRateDown::refresh() {
 }
 
 //튜닝
-CameraOffset::CameraOffset() : AbstractControl("CameraOffset", "CameraOffset값을 설정합니다.", "../assets/offroad/icon_shell.png") {
+CameraOffset::CameraOffset() : AbstractControl("CameraOffset", "CameraOffset값을 설정합니다. (+값:왼쪽이동, -값:오른쪽이동)", "../assets/offroad/icon_shell.png") {
 
   label.setAlignment(Qt::AlignVCenter|Qt::AlignRight);
   label.setStyleSheet("color: #e0e879");
@@ -2529,6 +2594,69 @@ CameraOffset::CameraOffset() : AbstractControl("CameraOffset", "CameraOffset값�
 
 void CameraOffset::refresh() {
   auto strs = QString::fromStdString(params.get("CameraOffsetAdj"));
+  int valuei = strs.toInt();
+  float valuef = valuei * 0.001;
+  QString valuefs = QString::number(valuef);
+  label.setText(QString::fromStdString(valuefs.toStdString()));
+  btnminus.setText("－");
+  btnplus.setText("＋");
+}
+
+PathOffset::PathOffset() : AbstractControl("PathOffset", "PathOffset값을 설정합니다. (+값:왼쪽이동, -값:오른쪽이동)", "../assets/offroad/icon_shell.png") {
+
+  label.setAlignment(Qt::AlignVCenter|Qt::AlignRight);
+  label.setStyleSheet("color: #e0e879");
+  hlayout->addWidget(&label);
+
+  btnminus.setStyleSheet(R"(
+    padding: 0;
+    border-radius: 50px;
+    font-size: 35px;
+    font-weight: 500;
+    color: #E4E4E4;
+    background-color: #393939;
+  )");
+  btnplus.setStyleSheet(R"(
+    padding: 0;
+    border-radius: 50px;
+    font-size: 35px;
+    font-weight: 500;
+    color: #E4E4E4;
+    background-color: #393939;
+  )");
+  btnminus.setFixedSize(150, 100);
+  btnplus.setFixedSize(150, 100);
+  hlayout->addWidget(&btnminus);
+  hlayout->addWidget(&btnplus);
+
+  QObject::connect(&btnminus, &QPushButton::clicked, [=]() {
+    auto str = QString::fromStdString(params.get("PathOffsetAdj"));
+    int value = str.toInt();
+    value = value - 5;
+    if (value <= -1000 ) {
+      value = -1000;
+    }
+    QString values = QString::number(value);
+    params.put("PathOffsetAdj", values.toStdString());
+    refresh();
+  });
+  
+  QObject::connect(&btnplus, &QPushButton::clicked, [=]() {
+    auto str = QString::fromStdString(params.get("PathOffsetAdj"));
+    int value = str.toInt();
+    value = value + 5;
+    if (value >= 1000 ) {
+      value = 1000;
+    }
+    QString values = QString::number(value);
+    params.put("PathOffsetAdj", values.toStdString());
+    refresh();
+  });
+  refresh();
+}
+
+void PathOffset::refresh() {
+  auto strs = QString::fromStdString(params.get("PathOffsetAdj"));
   int valuei = strs.toInt();
   float valuef = valuei * 0.001;
   QString valuefs = QString::number(valuef);
