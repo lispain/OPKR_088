@@ -1002,10 +1002,8 @@ static void bb_ui_draw_measures_left(UIState *s, int bb_x, int bb_y, int bb_w ) 
     char uom_str[16];
     std::string bat_level_val = std::to_string(int(s->scene.batPercent)) + "%";
     NVGcolor val_color = COLOR_WHITE_ALPHA(200);
-    int batteryPercent = scene->deviceState.getBatteryPercent();
-    snprintf(val_str, sizeof(val_str), "%d%%", batteryPercent);
     snprintf(uom_str, sizeof(uom_str), "%s", scene->deviceState.getBatteryStatus() == "Charging" ? "++" : "--");
-    bb_h +=bb_ui_draw_measure(s, val_str, uom_str, "배터리레벨",
+    bb_h +=bb_ui_draw_measure(s, bat_level_val.c_str(), uom_str, "배터리레벨",
         bb_rx, bb_ry, bb_uom_dx,
         val_color, lab_color, uom_color,
         value_fontSize, label_fontSize, uom_fontSize );
