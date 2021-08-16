@@ -1456,7 +1456,7 @@ void draw_kr_date_time(UIState *s) {
   } else if (s->scene.kr_date_show) {
     snprintf(now,sizeof(now),"%04d-%02d-%02d %s", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, dayofweek);
   } else if (s->scene.kr_time_show) {
-    snprintf(now,sizeof(now),"%02d:%02d:%02d", tm.tm_hour, tm.tm_min, tm.tm_sec);
+    snprintf(now,sizeof(now),"%02d:%02d", tm.tm_hour, tm.tm_min);
   }
 
   nvgTextAlign(s->vg, NVG_ALIGN_CENTER | NVG_ALIGN_TOP);
@@ -1468,7 +1468,7 @@ void draw_kr_date_time(UIState *s) {
   nvgStrokeWidth(s->vg, 0);
   nvgStroke(s->vg);
 
-  nvgFontSize(s->vg, 50);
+  nvgFontSize(s->vg, 45);
   nvgFillColor(s->vg, nvgRGBA(255, 255, 255, 200));
   nvgText(s->vg, s->fb_w/2, rect_y, now, NULL);
 }
