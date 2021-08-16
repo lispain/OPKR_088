@@ -292,7 +292,7 @@ static void ui_draw_tpms(UIState *s) {
   if (minv > s->scene.tpmsPressureRl) {minv = s->scene.tpmsPressureRl;}
   if (minv > s->scene.tpmsPressureRr) {minv = s->scene.tpmsPressureRr;}
 
-  if (scene.nTpmsDisplay) {
+  if (s->scene.nTpmsDisplay) {
     // Draw Border
     ui_draw_rect(s->vg, rect, COLOR_WHITE_ALPHA(100), 10, 20.);
     // Draw Background
@@ -513,14 +513,14 @@ static void ui_draw_vision_cameradist(UIState *s) {
   } else {
     color = COLOR_WHITE_ALPHA(0);
   }
-  if (!scene.nCameraWarning) {
+  if (!s->scene.nCameraWarning) {
     ui_fill_rect(s->vg, rect, color, 20.);
-  } else if (scene.nCameraWarning) {
+  } else if (s->scene.nCameraWarning) {
     ui_fill_rect(s->vg, rect2, color, 20.);
   }
   nvgTextAlign(s->vg, NVG_ALIGN_CENTER | NVG_ALIGN_BASELINE); 
   
-  if (!scene.nCameraWarning) {
+  if (!s->scene.nCameraWarning) {
     if (s->scene.liveMapData.opkrspeedlimitdist > 10000 && s->scene.liveMapData.opkrspeedlimitdist != 0) {
       color = COLOR_WHITE_ALPHA(0);
       ui_draw_rect(s->vg, rect, color, 10, 0.);
@@ -546,7 +546,7 @@ static void ui_draw_vision_cameradist(UIState *s) {
       ui_draw_text(s, rect.centerX() - 15, bdr_s+980, cameradist_str.c_str(), 34 * 2.0, COLOR_WHITE_ALPHA(0), "sans-semibold");
       ui_draw_text(s, rect.centerX() + 65, bdr_s+980, "m", 25 * 1.6, COLOR_WHITE_ALPHA(0), "sans-semibold");
     }
-  } else if (scene.nCameraWarning) {
+    else if (s->scene.nCameraWarning) {
     if (s->scene.mapSign == 165 && s->scene.limitSpeedCameraDist > 10000 && s->scene.liveMapData.opkrspeedlimitdist != 0) {
       color = COLOR_WHITE_ALPHA(0);
       ui_draw_rect(s->vg, rect, color, 10, 0.);
@@ -770,7 +770,7 @@ static void ui_draw_vision_event(UIState *s) {
     else if (s->scene.limitSpeedCamera < 120) {ui_draw_image(s, {img_speedlimit_x, img_speedlimit_y, img_speedlimit_size, img_speedlimit_size}, "speed_110", img_speedlimit_alpha);}
   }
   */
-  if (!scene.nCameraWarning) {
+  if (!s->scene.nCameraWarning) {
     // 구간단속구간일 경우 
     if (s->scene.mapSign == 165 ) { 
       if (s->scene.liveMapData.opkrspeedlimit < 70 && s->scene.liveMapData.opkrspeedlimit != 0 && s->scene.liveMapData.opkrspeedlimitdist != 0) {
@@ -808,7 +808,7 @@ static void ui_draw_vision_event(UIState *s) {
         ui_draw_image(s, {center_x - 84, center_y - 65, 180, 180}, "speed_110", 0.8f);
       }
     }
-  } else if (scene.nCameraWarning) {
+  } else if (s->scene.nCameraWarning) {
     if (s->scene.mapSign == 165 ) { 
       if (s->scene.liveMapData.opkrspeedlimit < 70 && s->scene.liveMapData.opkrspeedlimit != 0 && s->scene.liveMapData.opkrspeedlimitdist != 0) {
         ui_draw_image(s, {center_x - 84, center_y - 65, 180, 180}, "section_60", 0.8f);
