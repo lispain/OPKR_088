@@ -352,8 +352,8 @@ static void update_params(UIState *s) {
     scene.driving_record = params.getBool("OpkrDrivingRecord");
     scene.nDebugUi1 = params.getBool("DebugUi1");
     scene.nDebugUi2 = params.getBool("DebugUi2");
-    s->nCameraWarning = Params().getBool("CameraWarning");
-    s->nTpmsDisplay = Params().getBool("TpmsDisplay");
+    scene.nCameraWarning = Params().getBool("CameraWarning");
+    scene.nTpmsDisplay = Params().getBool("TpmsDisplay");
     scene.forceGearD = params.getBool("JustDoGearD");
     scene.nOpkrBlindSpotDetect = params.getBool("OpkrBlindSpotDetect");
     scene.laneless_mode = std::stoi(params.get("LanelessMode"));
