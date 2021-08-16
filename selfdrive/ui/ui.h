@@ -198,7 +198,7 @@ typedef struct UIScene {
   int dynamic_tr_mode;
   float dynamic_tr_value;
   bool touched2 = false;
-  float brightness_off;
+  int brightness_off;
   int cameraOffset, pathOffset, osteerRateCost;
   int pidKp, pidKi, pidKd, pidKf;
   int indiInnerLoopGain, indiOuterLoopGain, indiTimeConstant, indiActuatorEffectiveness;
@@ -210,6 +210,12 @@ typedef struct UIScene {
   int list_count = 3;
   int nTime, autoScreenOff, brightness, awake;
   int nVolumeBoost = 0;
+  bool read_params_once = false;
+  bool nDebugUi1;
+  bool nDebugUi2;
+  bool nCameraWarning;
+  bool nTpmsDisplay;
+  bool nOpkrBlindSpotDetect;
 
   cereal::DeviceState::Reader deviceState;
   cereal::RadarState::LeadData::Reader lead_data[2];
@@ -304,11 +310,6 @@ typedef struct UIState {
   bool awake;
 
   bool is_speed_over_limit;
-  bool nDebugUi1;
-  bool nDebugUi2;
-  bool nCameraWarning;
-  bool nTpmsDisplay;
-  bool nOpkrBlindSpotDetect;
   bool sidebar_view;
 
   float car_space_transform[6];
