@@ -216,6 +216,7 @@ typedef struct UIScene {
   bool nCameraWarning;
   bool nTpmsDisplay;
   bool nOpkrBlindSpotDetect;
+  bool auto_gitpull = false;
 
   cereal::DeviceState::Reader deviceState;
   cereal::RadarState::LeadData::Reader lead_data[2];
