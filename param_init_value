@@ -96,3 +96,4 @@ AutoEnableSpeed:3
 SafetyCamDecelDistGain:0
 OpkrLiveTunePanelEnable:0
 RadarLongHelper:1
+LiveSteerRatioPercent:0
