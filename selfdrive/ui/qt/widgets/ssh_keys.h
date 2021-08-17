@@ -604,7 +604,7 @@ public:
   CameraWarningToggle() : ToggleControl("과속단속 이미지 위치 변경", "OFF : 크루즈갭 아래 , ON : 크루즈속도 오른편 에 과속단속 관련 이미지가 표시됩니다.", "../assets/offroad/icon_shell.png", Params().getBool("CameraWarning")) {
     QObject::connect(this, &CameraWarningToggle::toggleFlipped, [=](int state) {
       bool status = state ? true : false;
-      Params().put("CameraWarning", status);
+      Params().putBool("CameraWarning", status);
     });
   }
 };
@@ -616,7 +616,7 @@ public:
   TpmsDisplayToggle() : ToggleControl("TPMS정보 표시", "TPMS정보를 이온 화면상에 표시합니다.", "../assets/offroad/icon_shell.png", Params().getBool("TpmsDisplay")) {
     QObject::connect(this, &TpmsDisplayToggle::toggleFlipped, [=](int state) {
       bool status = state ? true : false;
-      Params().put("TpmsDisplay", status);
+      Params().putBool("TpmsDisplay", status);
     });
   }
 };
