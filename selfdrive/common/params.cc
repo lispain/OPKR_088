@@ -346,6 +346,7 @@ std::unordered_map<std::string, uint32_t> keys = {
     {"KRTimeShow", PERSISTENT},
     {"RadarLongHelper", PERSISTENT},
     {"FCAType", PERSISTENT},
+    {"GitPullOnBoot", PERSISTENT},
 };
 
 } // namespace
