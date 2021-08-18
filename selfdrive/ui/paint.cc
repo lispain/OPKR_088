@@ -1207,7 +1207,7 @@ static void bb_ui_draw_measures_right(UIState *s, int bb_x, int bb_y, int bb_w )
     char val_str[16];
     char uom_str[16];
     NVGcolor val_color = COLOR_WHITE_ALPHA(200);
-    if (scene->controls_state.getEnabled()) {
+    if (scene.controls_state.getEnabled()) {
       if (scene.cruise_gap == scene.dynamic_tr_mode) {
         val_color = COLOR_GREEN_ALPHA(200);
         snprintf(val_str, sizeof(val_str), "A/T");
