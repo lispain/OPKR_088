@@ -216,6 +216,7 @@ typedef struct UIScene {
   bool nTpmsDisplay;
   bool nOpkrBlindSpotDetect;
   bool auto_gitpull = false;
+  bool is_speed_over_limit = false;
 
   cereal::DeviceState::Reader deviceState;
   cereal::RadarState::LeadData::Reader lead_data[2];
@@ -308,8 +309,6 @@ typedef struct UIState {
   mat4 rear_frame_mat;
 
   bool awake;
-
-  bool is_speed_over_limit;
   bool sidebar_view;
 
   float car_space_transform[6];
