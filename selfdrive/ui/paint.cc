@@ -468,6 +468,7 @@ static void ui_draw_vision_cameradist(UIState *s) {
   const int SET_SPEED_NA = 255;
   float maxspeed = s->scene.controls_state.getVCruise();
   const bool is_cruise_set = maxspeed != 0 && maxspeed != SET_SPEED_NA && s->scene.controls_state.getEnabled();
+  s->scene.is_speed_over_limit = s->scene.limitSpeedCamera > 29 && ((s->scene.limitSpeedCamera+round(s->scene.limitSpeedCamera*0.01*s->scene.speed_lim_off))+1 < s->scene.car_state.getVEgo()*3.6);
   float cameradist = s->scene.liveMapData.opkrspeedlimitdist;
   float cameradistkm = cameradist / 1000;
   if (is_cruise_set && !s->scene.is_metric) { maxspeed *= 0.6225; }
@@ -480,9 +481,9 @@ static void ui_draw_vision_cameradist(UIState *s) {
   const Rect rect2 = {bdr_s+195, bdr_s+125, 184, 80};
   NVGcolor color = COLOR_WHITE;
     
-  if (s->is_speed_over_limit) {
+  if (s->scene.is_speed_over_limit) {
     color = nvgRGBA(190, 0, 0, 255);
-  } else if (s->scene.liveMapData.opkrspeedlimit > 29 && !s->is_speed_over_limit) {
+  } else if (s->scene.liveMapData.opkrspeedlimit > 29 && !s->scene.is_speed_over_limit) {
     color = nvgRGBA(190, 0, 0, 255);
   } else {
     color = COLOR_WHITE_ALPHA(0);
@@ -1207,7 +1208,7 @@ static void bb_ui_draw_measures_right(UIState *s, int bb_x, int bb_y, int bb_w )
     char uom_str[16];
     NVGcolor val_color = COLOR_WHITE_ALPHA(200);
     if (scene->controls_state.getEnabled()) {
-      if (s->scene.cruise_gap == s->scene.dynamic_tr_mode) {
+      if (scene.cruise_gap == scene.dynamic_tr_mode) {
         val_color = COLOR_GREEN_ALPHA(200);
         snprintf(val_str, sizeof(val_str), "A/T");
         snprintf(uom_str, sizeof(uom_str), "%.2f",(scene.dynamic_tr_value));
